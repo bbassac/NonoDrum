@@ -1,4 +1,16 @@
-// _____ A définir ____
+#include <Arduino.h>
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
+#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+
 // Nombre d'entrées analogiques:
 int Ent_Analog = 16;
 // nombre de boutons
@@ -74,6 +86,13 @@ int j;
 
 void setup() {
   Serial.begin (31250); // attention vitesse de transmission MIDI = 31250, Moniteur Série = 9600
+  
+  // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;); // Don't proceed, loop forever
+  }
+  displayLaunchScreen();
 
   // initialisation des broches
   for (i = 0; i < Ent_Numerique; i++) {
@@ -128,6 +147,36 @@ void sendMessage (byte cmd, byte ch, byte val) {
   Serial.write (cmd);
   Serial.write (ch);
   Serial.write (val);
+  display.clearDisplay();
+  display.print("cmd : ");
+  display.print ((int)cmd, HEX);
+  display.println(" ");
+  display.print("ch : ");
+  display.print ((int)ch, HEX);
+  display.println(" ");
+  display.print("val : ");
+  display.print ((int)val, DEC);
+  display.println ("");
+  display.display();
+}
+
+void displayLaunchScreen(void) {
+  display.clearDisplay();
+
+  display.setTextSize(1);             // Normal 1:1 pixel scale
+  display.setTextColor(SSD1306_WHITE);        // Draw white text
+  display.setCursor(0,0);             // Start at top-left corner
+  display.println(F("Hello, world!"));
+
+  display.setTextColor(SSD1306_BLACK, SSD1306_WHITE); // Draw 'inverse' text
+  display.println(3.141592);
+
+  display.setTextSize(2);             // Draw 2X-scale text
+  display.setTextColor(SSD1306_WHITE);
+  display.print(F("0x"));
+  display.println(0xDEADBEEF, HEX);
+
+  display.display();
 }
 
 /*
