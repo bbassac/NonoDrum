@@ -17,7 +17,7 @@ int const nb_pot = 8;
 // nombre de boutons
 int const Ent_Numerique = 16;
 //sensibilité: 2, ça a l'air bien
-int sensibilite = 10;
+int sensibilite = 30;
 
 
 // déclaration des variables pour les boutons
@@ -62,7 +62,7 @@ boolean prev_button_value[16][2] = { 0, 0,
 
 // définition broches potentiomètres faders (de droite a gauche)
 int const fad[8] = { A0, A1, A2, A3, A4, A5, A6, A7 };
-int const pot[8] = {A8, A9, A10, A11, A12, A13, A14, A15};
+int const pot[8] = { A8, A9, A10, A11, A12, A13, A14, A15};
 // attribution control change Midi
 int Cc_pot[8] = { 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17 };
 int Cc_fad[8] = { 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F };
@@ -107,15 +107,15 @@ void loop() {
   
   manageDigitalButtons();
   manageNavigation();
-  /*
+  
   // Les faders
    for (int j = 0; j < nb_fad ; j++) {
-    prev_fad_value [j] = rafraichir (fad[j], prev_fad_value[j], Cc_fad[j]);
-  }*/
+    prev_fad_value [j] = rafraichir (fad[j], prev_fad_value[j], Cc_fad[j],j);
+  }
 
   // Les potentiometres
    for (int j = 0; j < nb_pot ; j++) {
-    prev_pot_value [j] = rafraichir (pot[j], prev_pot_value[j], Cc_pot[j]);
+    prev_pot_value [j] = rafraichir (pot[j], prev_pot_value[j], Cc_pot[j],j);
   }
 
 }
@@ -124,36 +124,36 @@ void manageNavigation(){
   
   //Navigation LEFT
   if (prev_nav_left==HIGH && digitalRead(LEFT)== LOW) {
-    Serial.println("LEFT appuyé");
+    //Serial.println("LEFT appuyé");
     prev_nav_left = LOW;
   } else if (prev_nav_left==LOW && digitalRead(LEFT) == HIGH){
-    Serial.println("LEFT relaché");
+    //Serial.println("LEFT relaché");
     prev_nav_left = HIGH;
   } 
   //Navigation UP
   if (prev_nav_up==HIGH && digitalRead(UP)== LOW) {
-    Serial.println("UP appuyé");
+    //Serial.println("UP appuyé");
     midiChannel = (midiChannel +1 ) %16 ;
     prev_nav_up = LOW;
   } else if (prev_nav_up==LOW && digitalRead(UP) == HIGH){
-    Serial.println("UP relaché");
+    //Serial.println("UP relaché");
     prev_nav_up = HIGH;
   } 
   //Navigation RIGHT
   else if (prev_nav_right==HIGH && digitalRead(RIGHT)== LOW) {
-    Serial.println("RIGHT appuyé");
+    //Serial.println("RIGHT appuyé");
     prev_nav_right = LOW;
   }else if (prev_nav_right==LOW && digitalRead(RIGHT) == HIGH){
-    Serial.println("Right relaché");
+    //Serial.println("Right relaché");
     prev_nav_right = HIGH;
   }  
   //Navigation DOWN
   else if (prev_nav_down==HIGH && digitalRead(DOWN)== LOW) {
-    Serial.println("DOWN appuyé");
+    //Serial.println("DOWN appuyé");
     midiChannel = (midiChannel -1 ) %16 ;
     prev_nav_down = LOW;
   }else if (prev_nav_down==LOW && digitalRead(DOWN) == HIGH){
-    Serial.println("DOWN relaché");
+    //Serial.println("DOWN relaché");
     prev_nav_down = HIGH;
   } 
 }
@@ -174,8 +174,13 @@ void manageDigitalButtons(){
   }
 }
 
-int rafraichir(int const pot, int potVal, int Cc) {
+int rafraichir(int const pot, int potVal, int Cc,int j) {
   int tmp = analogRead(pot);
+  /*Serial.print("A");
+  Serial.print(j,DEC);
+  Serial.print("=");
+  Serial.println(tmp);
+  delay(300); */ 
   if (potVal + sensibilite < tmp || potVal - sensibilite > tmp) {
     potVal = tmp;
     sendMessage(0xB0, Cc, potVal >> 3);  //envoie valeur non-clippée
